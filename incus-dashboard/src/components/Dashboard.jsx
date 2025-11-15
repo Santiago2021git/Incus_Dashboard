@@ -1,6 +1,16 @@
 import { motion } from "framer-motion";
 import ContainerList from "./ContainerList";
 import Stats from "./Stats";
+import CreateContainer from "./CreateContainer";
+
+<div className="grid md:grid-cols-2 gap-8">
+  <div>
+    <CreateContainer onCreated={() => {}} />
+    <ContainerList />
+  </div>
+  
+  <Stats />
+</div>
 
 export default function Dashboard() {
   return (

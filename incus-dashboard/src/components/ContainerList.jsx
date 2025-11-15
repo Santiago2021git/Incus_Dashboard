@@ -6,6 +6,9 @@ import { Play, Square, Trash2, RefreshCw } from "lucide-react";
 export default function ContainerList() {
   const [containers, setContainers] = useState([]);
   const [loading, setLoading] = useState(false);
+  const [newName, setNewName] = useState("");
+  
+
 
   const fetchContainers = async () => {
     setLoading(true);
@@ -18,6 +21,27 @@ export default function ContainerList() {
     setLoading(false);
   };
 
+
+  const handleCreate = async () => {
+    if (!newName) {
+      alert("Debe ingresar un nombre.");
+      return;
+    }
+
+    try {
+      const res = await axios.post("/api/containers", { name: newName });
+      console.log("CREATE Response:", res.data);
+
+      setNewName("");
+      fetchContainers();
+    } catch (error) {
+      alert(error.response?.data?.error || "Error al crear contenedor");
+      console.error("Error al crear:", error.response?.data || error);
+    }
+  };
+
+
+
   const handleAction = async (name, action) => {
     try {
       await axios.post(`/api/containers/${name}/${action}`);
@@ -26,6 +50,31 @@ export default function ContainerList() {
       console.error(`Error al ${action} contenedor`, err);
     }
   };
+
+  const handleDelete = async (name) => {
+    const password = prompt("Ingrese la contraseña para eliminar este contenedor:");
+
+    if (!password) return;
+
+    try {
+      const res = await axios.delete(`/api/containers/${name}`, {
+        data: { password }
+      });
+
+      console.log("DELETE Response:", res.data);
+      setContainers(containers.filter(c => c.name !== name));
+    } catch (error) {
+      alert(error.response?.data?.error || "Error al eliminar");
+      console.error("Error al eliminar:", error.response?.data || error);
+    }
+  };
+
+  const checkNameExists = (name) => {
+    return containers.some(c => c.name === name);
+  };
+
+
+
 
   useEffect(() => {
     fetchContainers();
@@ -39,6 +88,25 @@ export default function ContainerList() {
       className="bg-white/10 backdrop-blur-lg rounded-2xl p-6 shadow-lg"
     >
       <h3 className="text-xl font-semibold mb-4 text-center">Contenedores Activos</h3>
+      <div className="bg-white/5 p-4 rounded-xl mb-4">
+        <h4 className="font-semibold mb-2">Crear nuevo contenedor (Ubuntu 22.04)</h4>
+
+        <input
+          type="text"
+          placeholder="Nombre del contenedor"
+          value={newName}
+          onChange={(e) => setNewName(e.target.value)}
+          className="w-full p-2 mb-2 rounded bg-white/20"
+        />
+
+        <button
+          onClick={handleCreate}
+          className="w-full bg-green-600 hover:bg-green-700 text-white py-2 rounded-lg transition"
+        >
+          Crear contenedor
+        </button>
+      </div>
+
 
       {loading ? (
         <p className="text-center text-gray-300">Cargando contenedores...</p>
@@ -66,10 +134,10 @@ export default function ContainerList() {
                   <Square size={18} />
                 </button>
                 <button
-                  onClick={() => handleAction(c.name, "delete")}
-                  className="text-red-400 hover:text-red-600"
+                  onClick={() => handleDelete(c.name)}
+                  className="px-3 py-1 bg-red-500 hover:bg-red-600 text-white rounded-lg shadow transition"
                 >
-                  <Trash2 size={18} />
+                  Eliminar
                 </button>
               </div>
             </li>
